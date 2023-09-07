@@ -1,15 +1,44 @@
 ﻿#include <iostream>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
+void rotate_arbitrarily_angle(const cv::Mat& src, cv::Mat& dst, float angle)
+{
+	float radian = (float)(angle / 180.0 * CV_PI);
+
+	//填充图像
+	int maxBorder = (int)(std::max(src.cols, src.rows) * 1.414); //即为sqrt(2)*max
+	int dx = (maxBorder - src.cols) / 2;
+	int dy = (maxBorder - src.rows) / 2;
+	cv::copyMakeBorder(src, dst, dy, dy, dx, dx, cv::BORDER_CONSTANT);
+
+	//旋转
+	cv::Point2f center((float)(dst.cols / 2), (float)(dst.rows / 2));
+	cv::Mat affine_matrix = cv::getRotationMatrix2D(center, angle, 1.0);//求得旋转矩阵
+	cv::warpAffine(dst, dst, affine_matrix, dst.size());
+
+	//计算图像旋转之后包含图像的最大的矩形
+	float sinVal = abs(sin(radian));
+	float cosVal = abs(cos(radian));
+	cv::Size targetSize((int)(src.cols * cosVal + src.rows * sinVal),
+		(int)(src.cols * sinVal + src.rows * cosVal));
+
+	//剪掉多余边框
+	int x = (dst.cols - targetSize.width) / 2;
+	int y = (dst.rows - targetSize.height) / 2;
+	cv::Rect rect(x, y, targetSize.width, targetSize.height);
+	dst = cv::Mat(dst, rect);
+}
 int main(int argc, char** argv)
 {
-
 	//读取图像
-	cv::Mat img_1 = cv::imread("../Images/L10.jpg");
-	cv::Mat img_2 = cv::imread("../Images/R10.jpg");
-	assert(img_1.data != nullptr && img_2.data != nullptr);
+	cv::Mat img_1 = cv::imread("Images/L10.png");
+	cv::Mat img_2_ = cv::imread("Images/R10.png");
+	cv::Mat img_2;
+
+	rotate_arbitrarily_angle(img_2_, img_2, 30);
 
 	//初始化
 	std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
@@ -58,9 +87,9 @@ int main(int argc, char** argv)
 	drawMatches(img_1, keypoints_1, img_2, keypoints_2, matches, img_match);
 	drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, img_goodmatch);
 	cv::imshow("all matches", img_match);
-	cv::imwrite("../Result/img_match_1.jpg", img_match);
+	cv::imwrite("Images/img_match_1.jpg", img_match);
 	cv::imshow("good matches", img_goodmatch);
-	cv::imwrite("../Result/img_goodmatch_1.jpg", img_goodmatch);
+	cv::imwrite("Images/img_goodmatch_1.jpg", img_goodmatch);
 	cv::waitKey(0);
 
 	return 0;
