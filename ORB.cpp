@@ -34,8 +34,9 @@ void rotate_arbitrarily_angle(const cv::Mat& src, cv::Mat& dst, float angle)
 int main(int argc, char** argv)
 {
 	//读取图像
-	cv::Mat img_1 = cv::imread("Images/L10.png");
+	cv::Mat img_1_ = cv::imread("Images/L10.png");
 	cv::Mat img_2_ = cv::imread("Images/R10.png");
+
 	cv::Mat img_2;
 
 	rotate_arbitrarily_angle(img_2_, img_2, 30);
@@ -49,15 +50,15 @@ int main(int argc, char** argv)
 
 	//第一步，检测Oriented FAST 角点位置
 
-	detector->detect(img_1, keypoints_1);
+	detector->detect(img_1_, keypoints_1);
 	detector->detect(img_2, keypoints_2);
 
 	//第二部，根据角点位置计算BRIEF描述子
-	descriptor->compute(img_1, keypoints_1, descriptors_1);
+	descriptor->compute(img_1_, keypoints_1, descriptors_1);
 	descriptor->compute(img_2, keypoints_2, descriptors_2);
 
 	cv::Mat outimg1;
-	drawKeypoints(img_1, keypoints_1, outimg1, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
+	drawKeypoints(img_1_, keypoints_1, outimg1, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
 	cv::imshow("ORB features", outimg1);
 
 	//第三步：对两幅图像中打BRIEF描述子进行匹配，使用Hamming距离
@@ -84,8 +85,8 @@ int main(int argc, char** argv)
 	//第五步，绘制匹配结果
 	cv::Mat img_match;
 	cv::Mat img_goodmatch;
-	drawMatches(img_1, keypoints_1, img_2, keypoints_2, matches, img_match);
-	drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, img_goodmatch);
+	drawMatches(img_1_, keypoints_1, img_2, keypoints_2, matches, img_match);
+	drawMatches(img_1_, keypoints_1, img_2, keypoints_2, good_matches, img_goodmatch);
 	cv::imshow("all matches", img_match);
 	cv::imwrite("Images/img_match_1.jpg", img_match);
 	cv::imshow("good matches", img_goodmatch);
